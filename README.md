@@ -2,6 +2,9 @@
 
 A high-performance backend for executing DEX orders on Solana, featuring smart routing between Raydium and Meteora, real-time WebSocket updates, and robust queue management.
 
+The application is live on [The api url of app](https://assignment-eterna.onrender.com)
+The demonstration of code is live on [Youtube Video link](https://www.youtube.com/watch?v=UEAE6taMEyw)
+
 ## 🚀 Features
 
 - **Smart DEX Routing**: Automatically finds the best price between Raydium and Meteora.
