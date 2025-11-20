@@ -1,0 +1,273 @@
+{
+  "info": {
+    "name": "DEX Order Execution Engine",
+    "description": "API collection for DEX order execution with WebSocket status updates",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the API is running"
+      }
+    },
+    {
+      "name": "Create Market Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 100,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"TestWallet123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        },
+        "description": "Create a new market order. Returns orderId for WebSocket connection."
+      }
+    },
+    {
+      "name": "Get Order Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/orders/{{orderId}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "{{orderId}}"]
+        },
+        "description": "Get current status and history of an order via HTTP"
+      }
+    },
+    {
+      "name": "Create Order - SOL to USDT",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDT\",\n  \"amountIn\": 50,\n  \"slippage\": 0.015,\n  \"walletAddress\": \"TestWallet987654321\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Create Order - Large Amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"USDC\",\n  \"tokenOut\": \"SOL\",\n  \"amountIn\": 10000,\n  \"slippage\": 0.02,\n  \"walletAddress\": \"LargeOrderWallet\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Concurrent Orders - Order 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 25,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"ConcurrentWallet1\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Concurrent Orders - Order 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 75,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"ConcurrentWallet2\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Concurrent Orders - Order 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 150,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"ConcurrentWallet3\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Concurrent Orders - Order 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 200,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"ConcurrentWallet4\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Concurrent Orders - Order 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 300,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"ConcurrentWallet5\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        }
+      }
+    },
+    {
+      "name": "Error - Invalid Order Type",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"limit\",\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 100,\n  \"slippage\": 0.01,\n  \"walletAddress\": \"TestWallet\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        },
+        "description": "Test error handling - limit orders not supported"
+      }
+    },
+    {
+      "name": "Error - Missing Required Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"market\",\n  \"tokenIn\": \"SOL\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "execute"]
+        },
+        "description": "Test error handling - missing required fields"
+      }
+    },
+    {
+      "name": "Error - Invalid Order ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/orders/invalid-order-id-12345",
+          "host": ["{{base_url}}"],
+          "path": ["api", "orders", "invalid-order-id-12345"]
+        },
+        "description": "Test error handling - order not found"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEX Order Execution - WebSocket Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-timeline {
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #ddd;
+        }
+        
+        .status-item.pending {
+            border-left-color: #ffc107;
+        }
+        
+        .status-item.routing {
+            border-left-color: #17a2b8;
+        }
+        
+        .status-item.building {
+            border-left-color: #007bff;
+        }
+        
+        .status-item.submitted {
+            border-left-color: #6f42c1;
+        }
+        
+        .status-item.confirmed {
+            border-left-color: #28a745;
+        }
+        
+        .status-item.failed {
+            border-left-color: #dc3545;
+        }
+        
+        .status-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .status-content {
+            flex: 1;
+        }
+        
+        .status-content h4 {
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .status-content p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .dex-quotes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .dex-quote {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+        
+        .dex-quote.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .dex-quote h5 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .quote-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .connection-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .order-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .order-info h3 {
+            margin-bottom: 10px;
+        }
+        
+        .order-info p {
+            margin-bottom: 5px;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 DEX Order Execution Engine</h1>
+            <p>Real-time WebSocket Demo</p>
+        </div>
+        
+        <div class="card">
+            <h2>Create Market Order</h2>
+            <form id="orderForm">
+                <div class="form-group">
+                    <label>API URL:</label>
+                    <input type="text" id="apiUrl" value="http://localhost:3000" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Token In:</label>
+                    <input type="text" id="tokenIn" value="SOL" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Token Out:</label>
+                    <input type="text" id="tokenOut" value="USDC" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <input type="number" id="amountIn" value="100" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Slippage (%):</label>
+                    <input type="number" id="slippage" value="1" step="0.1" min="0" max="100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Wallet Address:</label>
+                    <input type="text" id="walletAddress" value="TestWallet123456789" required>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">Submit Order</button>
+            </form>
+        </div>
+        
+        <div class="card" id="orderCard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Order Status</h2>
+                <span class="connection-status disconnected" id="wsStatus">Disconnected</span>
+            </div>
+            
+            <div class="order-info" id="orderInfo"></div>
+            
+            <div class="status-timeline" id="statusTimeline"></div>
+        </div>
+    </div>
+    
+    <script>
+        let ws = null;
+        let currentOrderId = null;
+        
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const apiUrl = document.getElementById('apiUrl').value;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Order...';
+            
+            try {
+                // Create order via HTTP POST
+                const response = await fetch(`${apiUrl}/api/orders/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'market',
+                        tokenIn: document.getElementById('tokenIn').value,
+                        tokenOut: document.getElementById('tokenOut').value,
+                        amountIn: parseFloat(document.getElementById('amountIn').value),
+                        slippage: parseFloat(document.getElementById('slippage').value) / 100,
+                        walletAddress: document.getElementById('walletAddress').value
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                currentOrderId = result.orderId;
+                
+                // Show order info
+                document.getElementById('orderInfo').innerHTML = `
+                    <h3>Order Created Successfully!</h3>
+                    <p><strong>Order ID:</strong> <code>${result.orderId}</code></p>
+                    <p><strong>Status:</strong> ${result.status}</p>
+                `;
+                
+                document.getElementById('orderCard').style.display = 'block';
+                document.getElementById('statusTimeline').innerHTML = '';
+                
+                // Connect WebSocket
+                connectWebSocket(apiUrl, result.orderId);
+                
+            } catch (error) {
+                alert('Error creating order: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Order';
+            }
+        });
+        
+        function connectWebSocket(apiUrl, orderId) {
+            const wsUrl = apiUrl.replace('http', 'ws');
+            ws = new WebSocket(`${wsUrl}/api/orders/execute/${orderId}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                updateConnectionStatus(true);
+            };
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                console.log('Received:', message);
+                
+                if (message.type === 'status') {
+                    addStatusUpdate(message);
+                }
+                
+                if (message.type === 'complete') {
+                    console.log('Order completed');
+                }
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus(false);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+        
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('wsStatus');
+            statusEl.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
+            statusEl.textContent = connected ? 'Connected' : 'Disconnected';
+        }
+        
+        function addStatusUpdate(message) {
+            const timeline = document.getElementById('statusTimeline');
+            const statusItem = document.createElement('div');
+            statusItem.className = `status-item ${message.status}`;
+            
+            const icons = {
+                pending: '⏳',
+                routing: '🔍',
+                building: '🔨',
+                submitted: '📤',
+                confirmed: '✅',
+                failed: '❌'
+            };
+            
+            let content = `
+                <div class="status-icon">${icons[message.status]}</div>
+                <div class="status-content">
+                    <h4>${message.status}</h4>
+                    <p>${new Date(message.timestamp).toLocaleTimeString()}</p>
+            `;
+            
+            // Add DEX quotes if available
+            if (message.data?.quotes) {
+                content += '<div class="dex-quotes">';
+                message.data.quotes.forEach(quote => {
+                    const isSelected = message.data.selectedQuote?.dex === quote.dex;
+                    content += `
+                        <div class="dex-quote ${isSelected ? 'selected' : ''}">
+                            <h5>${quote.dex.toUpperCase()} ${isSelected ? '✓' : ''}</h5>
+                            <div class="quote-detail">
+                                <span>Price:</span>
+                                <span>${quote.price.toFixed(4)}</span>
+                            </div>
+                            <div class="quote-detail">
+                                <span>Amount Out:</span>
+                                <span>${quote.amountOut.toFixed(2)}</span>
+                            </div>
+                            <div class="quote-detail">
+                                <span>Fee:</span>
+                                <span>${quote.fee.toFixed(2)}</span>
+                            </div>
+                            <div class="quote-detail">
+                                <span>Gas:</span>
+                                <span>${quote.estimatedGas}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            }
+            
+            // Add transaction details if confirmed
+            if (message.status === 'confirmed' && message.data) {
+                content += `
+                    <p style="margin-top: 10px;"><strong>DEX:</strong> ${message.data.dex.toUpperCase()}</p>
+                    <p><strong>TX Hash:</strong> <code>${message.data.txHash.substring(0, 30)}...</code></p>
+                    <p><strong>Executed Price:</strong> ${message.data.executedPrice.toFixed(4)}</p>
+                    <p><strong>Amount Out:</strong> ${message.data.amountOut.toFixed(2)}</p>
+                `;
+            }
+            
+            // Add error if failed
+            if (message.status === 'failed' && message.data?.error) {
+                content += `<p style="color: #dc3545; margin-top: 10px;"><strong>Error:</strong> ${message.data.error}</p>`;
+            }
+            
+            content += '</div></div>';
+            statusItem.innerHTML = content;
+            
+            timeline.appendChild(statusItem);
+            statusItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
